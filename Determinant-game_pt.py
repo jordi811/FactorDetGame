@@ -39,26 +39,25 @@ def demo_matrix():
 
 # ====== セッション初期化 ======
 with center:
-if "matrix" not in st.session_state:
-    # 同じディレクトリにある problem*.json を探す
-    problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
+    if "matrix" not in st.session_state:
+        # ディレクトリ内の problem*.json をリストアップ
+        problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
 
-    # プルダウンで選択
-    selected_file = st.selectbox("問題ファイルを選んでな:", problem_files)
+        # プルダウンで選択
+        selected_file = st.selectbox("問題ファイルを選んでな:", problem_files)
 
-    if selected_file:
-        # 選ばれたファイルを open() で読み込む
-        with open(selected_file, "r", encoding="utf-8") as f:
-            size, matrix, data = load_matrix(f)
-    else:
-        st.info("ファイル選ばれてへんから、デモ用の行列を使うで")
-        time.sleep(10)
-        size, matrix, data = demo_matrix()
+        if selected_file:
+            with open(selected_file, "r", encoding="utf-8") as f:
+                size, matrix, data = load_matrix(f)  # ← ファイルオブジェクトを渡す
+        else:
+            st.info("ファイル選ばれてへんから、デモ用の行列を使うで")
+            time.sleep(10)
+            size, matrix, data = demo_matrix()
 
-        st.session_state.size = size
-        st.session_state.matrix = matrix
-        st.session_state.factor = 1
-        st.session_state.start_time = time.time()
+            st.session_state.size = size
+            st.session_state.matrix = matrix
+            st.session_state.factor = 1
+            st.session_state.start_time = time.time()
 
 # ====== タイマー表示 ======
 with center:
@@ -229,3 +228,4 @@ with center:
     else:
 
         st.info("まだゴールちゃうで。行列式が数字になるまで、もうちょい頑張ってな！")
+
