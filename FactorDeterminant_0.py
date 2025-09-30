@@ -47,22 +47,26 @@ with center:
         # ディレクトリ内の problem*.json をリストアップ
         problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
 
-        # プルダウンで選択
-        selected_file = st.selectbox("問題ファイルを選んでな:", problem_files)
+        # プルダウン（session_stateに選択状態を保持）
+        selected_file = st.selectbox(
+        "問題ファイルを選んでな:",
+        problem_files,
+        index=problem_files.index(st.session_state.get("last_file", problem_files[0]))
+        )
 
-        if selected_file and os.path.exists(selected_file):
+        # 選択が変わったら更新
+        if "last_file" not in st.session_state or st.session_state.last_file != selected_file:
             with open(selected_file, "r", encoding="utf-8") as f:
-                size, matrix, data = load_matrix(f)
-        else:
-            st.info("ファイル選ばれてへんから、デモ用の行列を使うで")
-            time.sleep(3)
-            size, matrix, data = demo_matrix()
-
+                data = json.load(f)
+            st.session_state.matrix = Matrix(data["matrix"])
+            st.session_state.size = st.session_state.matrix.shape[0]
+            st.session_state.problem_data = data
+            st.session_state.last_file = selected_file
         # session_state に保存
-        st.session_state.size = size
-        st.session_state.matrix = matrix
-        st.session_state.factor = 1
-        st.session_state.start_time = time.time()  # 選択後にゲーム開始時間を上書き
+#        st.session_state.size = size
+#        st.session_state.matrix = matrix
+#        st.session_state.factor = 1
+#        st.session_state.start_time = time.time()  # 選択後にゲーム開始時間を上書き
 
 # ====== タイマー表示 ======
 with center:
