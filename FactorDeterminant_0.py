@@ -236,16 +236,21 @@ with center:
 # 【もう1回やるか？ボタン】
 # ==============================
 with center:
-    reset = st.button("もう1回やるか？")
-    if reset:
-        # セッション変数をリセット
-        st.session_state.factor = 1
-        size, matrix, data = demo_matrix()
-        st.session_state.size = size
-        st.session_state.matrix = matrix
-        st.session_state.problem_data = data
-        st.session_state.last_file = "demo"
-        st.session_state.start_time = time.time()
+    # ゴール判定後にだけ表示
+    current_det = st.session_state.matrix.det() if st.session_state.matrix is not None else None
 
-        # この if ブロック内で rerun
-        st.experimental_rerun()
+    if current_det is not None and not current_det.free_symbols:
+        # ゴールしたときだけ「もう1回やるか？」を表示
+        reset = st.button("もう1回やるか？")
+        if reset:
+            # セッション変数をリセット
+            st.session_state.factor = 1
+            size, matrix, data = demo_matrix()
+            st.session_state.size = size
+            st.session_state.matrix = matrix
+            st.session_state.problem_data = data
+            st.session_state.last_file = "demo"
+            st.session_state.start_time = time.time()
+
+            # ページ再描画
+            st.experimental_rerun()
