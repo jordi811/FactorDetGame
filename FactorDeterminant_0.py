@@ -43,14 +43,22 @@ def demo_matrix():
 
 # ====== セッション初期化 ======
 for key, default in {
-    "factor": 1,        # 行列式の前についてくる係数
-    "matrix": None,     # 問題の行列
-    "size": None,       # 行列のサイズ
+    "factor": 1,
+    "matrix": None,
+    "size": None,
     "problem_data": None,
-    "last_file": None,  # 前回選んだファイル
-    "start_time": time.time(),  # タイマー用
+    "last_file": None,
+    "start_time": time.time(),
 }.items():
     st.session_state.setdefault(key, default)
+
+# 最初はデモ問題を必ず表示
+if st.session_state.matrix is None:
+    size, matrix, data = demo_matrix()
+    st.session_state.size = size
+    st.session_state.matrix = matrix
+    st.session_state.problem_data = data
+    st.session_state.last_file = "demo"
 
 with center:
     if "matrix" not in st.session_state:
