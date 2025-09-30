@@ -52,41 +52,40 @@ for key, default in {
 }.items():
     st.session_state.setdefault(key, default)
 
-# 最初はデモ問題を必ず表示
-if st.session_state.matrix is None:
-    size, matrix, data = demo_matrix()
-    st.session_state.size = size
-    st.session_state.matrix = matrix
-    st.session_state.problem_data = data
-    st.session_state.last_file = "demo"
-
 with center:
-    if "matrix" not in st.session_state:
-        # ディレクトリ内の problem*.json をリストアップ
-        problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
+# 最初はデモ問題を必ず表示
+    if st.session_state.matrix is None:
+        size, matrix, data = demo_matrix()
+        st.session_state.size = size
+        st.session_state.matrix = matrix
+        st.session_state.problem_data = data
+        st.session_state.last_file = "demo"
+        
+    # ディレクトリ内の problem*.json をリストアップ
+    problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
 
-        if not problem_files:
-            st.error("問題ファイルが見つからへん！ problem*.json を置いてな。")
+    if not problem_files:
+        st.error("問題ファイルが見つからへん！ problem*.json を置いてな。")
+    else:
+        # 前回選んだファイルを取得（無ければ先頭）
+        default_file = st.session_state.get("last_file", problem_files[0])
+        if default_file in problem_files:
+            default_index = problem_files.index(default_file)
         else:
-            # 前回選んだファイルを取得（無ければ先頭）
-            default_file = st.session_state.get("last_file", problem_files[0])
-            if default_file in problem_files:
-                default_index = problem_files.index(default_file)
-            else:
-                default_index = 0
+            default_index = 0
 
-            # プルダウン表示
-            selected_file = st.selectbox("問題ファイルを選んでな:", problem_files, index=default_index)
+        # プルダウン表示
+        selected_file = st.selectbox("問題ファイルを選んでな:", problem_files, index=default_index)
 
-    # ファイルが変わったら読み込み
-            if st.session_state.get("last_file") != selected_file:
-                with open(selected_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+        # ファイルが変わったら読み込み
+        if st.session_state.get("last_file") != selected_file:
+            with open(selected_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
 
-                st.session_state.matrix = Matrix(data["matrix"])
-                st.session_state.size = st.session_state.matrix.shape[0]
-                st.session_state.problem_data = data
-                st.session_state.last_file = selected_file
+            st.session_state.matrix = Matrix(data["matrix"])
+            st.session_state.size = st.session_state.matrix.shape[0]
+            st.session_state.problem_data = data
+            st.session_state.last_file = selected_file
         # session_state に保存
 #        st.session_state.size = size
 #        st.session_state.matrix = matrix
