@@ -203,4 +203,5 @@ with center:
         else:
             st.snow()
     else:
-        st.info("まだゴールちゃうで。
+        st.info("まだゴールちゃうで。行列式が数字になるまで、もうちょい頑張ってな！")
+
