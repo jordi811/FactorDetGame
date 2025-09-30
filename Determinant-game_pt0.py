@@ -8,6 +8,7 @@ import sympy as sp
 from sympy import Matrix, symbols, latex
 import time
 import re
+import os
 
 # ====== ページ設定 ======
 st.set_page_config(layout="wide")
@@ -38,14 +39,21 @@ def demo_matrix():
 
 # ====== セッション初期化 ======
 with center:
-    if "matrix" not in st.session_state:
-        uploaded_file = st.file_uploader("JSONファイル、アップロードしてやー", type="json")
-        if uploaded_file is not None:
-            size, matrix, data = load_matrix(uploaded_file)
-        else:
-            st.info("ファイル選ばれてへんから、デモ用の行列を使うで")
-            time.sleep(10) # 10秒間待つ
-            size, matrix, data = demo_matrix()
+if "matrix" not in st.session_state:
+    # 同じディレクトリにある problem*.json を探す
+    problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
+
+    # プルダウンで選択
+    selected_file = st.selectbox("問題ファイルを選んでな:", problem_files)
+
+    if selected_file:
+        # 選ばれたファイルを open() で読み込む
+        with open(selected_file, "r", encoding="utf-8") as f:
+            size, matrix, data = load_matrix(f)
+    else:
+        st.info("ファイル選ばれてへんから、デモ用の行列を使うで")
+        time.sleep(10)
+        size, matrix, data = demo_matrix()
 
         st.session_state.size = size
         st.session_state.matrix = matrix
@@ -219,4 +227,5 @@ with center:
         else:
             st.snow() # 15分以上やったら雪を降らせる
     else:
+
         st.info("まだゴールちゃうで。行列式が数字になるまで、もうちょい頑張ってな！")
