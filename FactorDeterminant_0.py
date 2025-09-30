@@ -232,4 +232,19 @@ with center:
             st.snow()
     else:
         st.info("まだゴールちゃうで。行列式が数字になるまで、もうちょい頑張ってな！")
+# ==============================
+# 【もう1回やるか？ボタン】
+# ==============================
+with center:
+    if st.button("もう1回やるか？"):
+        # セッション変数をリセット
+        st.session_state.factor = 1
+        size, matrix, data = demo_matrix()
+        st.session_state.size = size
+        st.session_state.matrix = matrix
+        st.session_state.problem_data = data
+        st.session_state.last_file = "demo"
+        st.session_state.start_time = time.time()
+        
+        st.experimental_rerun()  # ページを再描画してリセット状態を反映
 
