@@ -1,37 +1,33 @@
 # ================================================
-# プロトタイプ（pt） 行列式因数分解ゲーム 
+# プロトタイプ（pt） 行列式因数分解ゲーム
 # ================================================
 import streamlit as st
 import json
-import numpy as np
 import sympy as sp
 from sympy import Matrix, symbols, latex
 import time
-import re
 import os
+import re
 import unicodedata
 
 # ====== ページ設定 ======
 st.set_page_config(layout="wide")
-
-# ページ読み込み直後に start_time を初期化（後でゲーム開始時に上書き可）
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
 
 # 画面を3つのカラムに分割
 left, center, right = st.columns([1, 2, 1])
 
 # ====== タイトル ======
 with center:
-    st.title("行列式因数分解ゲーム ver.0")
+    st.title("行列式因数分解ゲーム（pt0）")
 
 x = symbols('x')
 
 # ====== 関数：行列データ読み込み ======
-def load_matrix(uploaded_file):
-    data = json.load(uploaded_file)
-    matrix = Matrix(data["matrix"])
-    size = matrix.shape[0]
+def load_matrix_from_file(filename):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        matrix = Matrix(data["matrix"])
+        size = matrix.shape[0]
     return size, matrix, data
 
 # ====== 関数：デモ用サンプル行列 ======
@@ -52,53 +48,40 @@ for key, default in {
 }.items():
     st.session_state.setdefault(key, default)
 
+# 最初は必ずデモ問題
+if st.session_state.matrix is None:
+    size, matrix, data = demo_matrix()
+    st.session_state.size = size
+    st.session_state.matrix = matrix
+    st.session_state.problem_data = data
+    st.session_state.last_file = "demo"
+
+# ====== 問題ファイル選択（プルダウン） ======
 with center:
-# 最初はデモ問題を必ず表示
-    if st.session_state.matrix is None:
-        size, matrix, data = demo_matrix()
-        st.session_state.size = size
-        st.session_state.matrix = matrix
-        st.session_state.problem_data = data
-        st.session_state.last_file = "demo"
-        
     # ディレクトリ内の problem*.json をリストアップ
     problem_files = [f for f in os.listdir(".") if f.startswith("problem") and f.endswith(".json")]
+    if problem_files:
+        selected_file = st.selectbox("問題ファイルを選んでな:", ["デモ"] + problem_files, index=0)
 
-    if not problem_files:
-        st.error("問題ファイルが見つからへん！ problem*.json を置いてな。")
-    else:
-        # 前回選んだファイルを取得（無ければ先頭）
-        default_file = st.session_state.get("last_file", problem_files[0])
-        if default_file in problem_files:
-            default_index = problem_files.index(default_file)
-        else:
-            default_index = 0
-
-        # プルダウン表示
-        selected_file = st.selectbox("問題ファイルを選んでな:", problem_files, index=default_index)
-
-        # ファイルが変わったら読み込み
-        if st.session_state.get("last_file") != selected_file:
-            with open(selected_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-            st.session_state.matrix = Matrix(data["matrix"])
-            st.session_state.size = st.session_state.matrix.shape[0]
+        if selected_file != st.session_state.last_file:
+            if selected_file == "デモ":
+                size, matrix, data = demo_matrix()
+            else:
+                size, matrix, data = load_matrix_from_file(selected_file)
+            st.session_state.size = size
+            st.session_state.matrix = matrix
             st.session_state.problem_data = data
             st.session_state.last_file = selected_file
-        # session_state に保存
-#        st.session_state.size = size
-#        st.session_state.matrix = matrix
-#        st.session_state.factor = 1
-#        st.session_state.start_time = time.time()  # 選択後にゲーム開始時間を上書き
+            st.session_state.factor = 1
+            st.session_state.start_time = time.time()
 
 # ====== タイマー表示 ======
 with center:
-    start_time = st.session_state.get("start_time", time.time())
-    elapsed_time = time.time() - start_time
-    minutes = int(elapsed_time / 60)
-    seconds = int(elapsed_time % 60)
-    st.write(f"経過時間：{minutes}分 {seconds}秒")
+    if st.session_state.start_time is not None:
+        elapsed_time = time.time() - st.session_state.start_time
+        minutes = int(elapsed_time / 60)
+        seconds = int(elapsed_time % 60)
+        st.write(f"経過時間：{minutes}分 {seconds}秒")
 
 # ==============================
 # 【操作パネル：行の入れ替え】
@@ -135,23 +118,23 @@ with right:
             st.session_state.matrix[dest_row-1, :] += factor_expr * st.session_state.matrix[src_row-1, :]
             st.success("行の加減操作、完了したで！")
         except sp.SympifyError:
-            st.error("あかん！その文字列は、ちゃんとした数式とちゃうで")
+            st.error("その文字列は数式として認識できへんで")
         except Exception as e:
-            st.error(f"残念やけど、エラーやわ: {e}")
+            st.error(f"エラーや: {e}")
 
 # ==============================
 # 【操作パネル：転置】
 # ==============================
 with right:
-    st.subheader("**転置**")
+    st.subheader("転置")
     if st.button("転置する", key="btn_transpose"):
         st.session_state.matrix = st.session_state.matrix.copy().T
 
 # ==============================
-# 【操作パネル：共通因数のくくり出し】
+# 【操作パネル：共通因数くくり出し】
 # ==============================
 with left:
-    st.subheader("**共通因数くくり出し（数値 or 数式）**")
+    st.subheader("共通因数くくり出し")
     factor_row = st.number_input("因数をくくる行", min_value=1, max_value=st.session_state.size, value=1, key="factor_row")
     factor_str = st.text_input("くくり出す因数（例: x-1, 2）", value="", key="factor_str")
 
@@ -169,51 +152,47 @@ with left:
                     return s
                 processed_factor_str = simplify_input_string(normalized_factor_str)
                 factor_expr = sp.sympify(processed_factor_str)
-
                 m = st.session_state.matrix.copy()
                 row_index = factor_row - 1
                 can_factor_out = True
-
                 for j in range(m.shape[1]):
                     quotient, remainder = sp.div(m[row_index, j], factor_expr, domain='QQ')
                     if remainder != 0:
                         can_factor_out = False
                         break
                     m[row_index, j] = quotient
-
                 if can_factor_out:
                     st.session_state.matrix = m
                     st.session_state.factor = sp.simplify(st.session_state.factor * factor_expr)
                     st.success(f"成功！因数 `{factor_expr}` をくくり出したで！")
                 else:
                     st.error(f"エラーやで `{factor_expr}` は、この行全部の共通因数ちゃうみたいや")
-                    st.info("その因数、合ってるかもう一回見てみよか")
             except sp.SympifyError:
-                st.error("入力してもろたんは、数式とちゃうわ。半角英数字で、もう一回入れてみてな！")
+                st.error("入力した文字列は数式とちゃうで")
             except Exception as e:
-                st.error(f"あかんわ。なんか予期せぬエラーが出たみたいや: {e}")
+                st.error(f"予期せぬエラーや: {e}")
 
 # ====== 現在の状態表示 ======
 with center:
     st.subheader("現在の行列式")
-    st.latex(rf"{st.session_state.factor} \cdot {latex(st.session_state.matrix)}")
+    if st.session_state.matrix is not None:
+        st.latex(rf"{st.session_state.factor} \cdot {latex(st.session_state.matrix)}")
 
 # ==============================
 # 【ゴール判定】
 # ==============================
 with center:
-    st.subheader("ゴール判定")
-    current_det = st.session_state.matrix.det()
-    if not current_det.free_symbols:
+    current_det = st.session_state.matrix.det() if st.session_state.matrix is not None else None
+
+    if current_det is not None and not current_det.free_symbols:
         st.success(f"おめでとうさん！🎉 残った行列式は数になったで！")
         st.write(f"最終的な行列式の値は `{st.session_state.factor * current_det}` やで")
-
-        final_time = time.time() - st.session_state.get("start_time", time.time())
+        final_time = time.time() - st.session_state.start_time
         final_minutes = int(final_time / 60)
         final_seconds = int(final_time % 60)
         st.write(f"クリアタイム：{final_minutes}分 {final_seconds}秒")
 
-        # 演出
+        # 風船演出
         if final_minutes < 3:
             for _ in range(10):
                 st.balloons()
@@ -230,27 +209,21 @@ with center:
             st.balloons()
         else:
             st.snow()
-    else:
-        st.info("まだゴールちゃうで。行列式が数字になるまで、もうちょい頑張ってな！")
-# ==============================
-# 【もう1回やるか？ボタン】
-# ==============================
-with center:
-    # ゴール判定後にだけ表示
-    current_det = st.session_state.matrix.det() if st.session_state.matrix is not None else None
 
-    if current_det is not None and not current_det.free_symbols:
-        # ゴールしたときだけ「もう1回やるか？」を表示
+        # ==============================
+        # 【もう1回やるか？ボタン（ゴール後のみ表示）】
+        # ==============================
         reset = st.button("もう1回やるか？")
         if reset:
-            # セッション変数をリセット
-            st.session_state.factor = 1
             size, matrix, data = demo_matrix()
-            st.session_state.size = size
-            st.session_state.matrix = matrix
-            st.session_state.problem_data = data
-            st.session_state.last_file = "demo"
-            st.session_state.start_time = time.time()
-
-            # ページ再描画
+            st.session_state.update({
+                "factor": 1,
+                "matrix": matrix,
+                "size": size,
+                "problem_data": data,
+                "last_file": "demo",
+                "start_time": time.time()
+            })
             st.experimental_rerun()
+    else:
+        st.info("まだゴールちゃうで。行列式が数字になるまで頑張ってな！")
