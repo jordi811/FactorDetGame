@@ -23,7 +23,7 @@ left, center, right = st.columns([1, 2, 1])
 
 # ====== タイトル ======
 with center:
-    st.title("行列式因数分解ゲーム（pt0）")
+    st.title("行列式因数分解ゲーム ver.0")
 
 x = symbols('x')
 
