@@ -42,6 +42,16 @@ def demo_matrix():
     return 3, matrix, {"matrix": matrix.tolist()}
 
 # ====== セッション初期化 ======
+for key, default in {
+    "factor": 1,        # 行列式の前についてくる係数
+    "matrix": None,     # 問題の行列
+    "size": None,       # 行列のサイズ
+    "problem_data": None,
+    "last_file": None,  # 前回選んだファイル
+    "start_time": time.time(),  # タイマー用
+}.items():
+    st.session_state.setdefault(key, default)
+
 with center:
     if "matrix" not in st.session_state:
         # ディレクトリ内の problem*.json をリストアップ
