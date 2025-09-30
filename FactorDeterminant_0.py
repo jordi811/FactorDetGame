@@ -236,7 +236,8 @@ with center:
 # 【もう1回やるか？ボタン】
 # ==============================
 with center:
-    if st.button("もう1回やるか？"):
+    reset = st.button("もう1回やるか？")
+    if reset:
         # セッション変数をリセット
         st.session_state.factor = 1
         size, matrix, data = demo_matrix()
@@ -245,6 +246,6 @@ with center:
         st.session_state.problem_data = data
         st.session_state.last_file = "demo"
         st.session_state.start_time = time.time()
-        
-        st.experimental_rerun()  # ページを再描画してリセット状態を反映
 
+        # この if ブロック内で rerun
+        st.experimental_rerun()
