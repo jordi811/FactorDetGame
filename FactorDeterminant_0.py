@@ -176,7 +176,11 @@ with left:
 with center:
     st.subheader("現在の行列式")
     if st.session_state.matrix is not None:
-        expr_factor = latex(sympify(st.session_state.factor))
+        factor = st.session_state.factor
+        if isinstance(factor, (int, float)):
+            expr_factor = latex(factor)
+        else:
+            expr_factor = latex(sp.sympify(factor))
         expr_matrix = latex(st.session_state.matrix)
         st.latex(rf"{expr_factor} \cdot {expr_matrix}")
 
