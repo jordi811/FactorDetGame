@@ -156,7 +156,13 @@ with left:
                 row_index = factor_row - 1
                 can_factor_out = True
                 for j in range(m.shape[1]):
-                    quotient, remainder = sp.div(m[row_index, j], factor_expr, domain='QQ')
+                    entry = m[row_index, j]
+                    # factor_expr が数値なら単純に割る
+                    if factor_expr.is_number:
+                        quotient = entry / factor_expr
+                        remainder = 0
+                    else:
+                        quotient, remainder = sp.div(entry, factor_expr)
                     if remainder != 0:
                         can_factor_out = False
                         break
