@@ -4,7 +4,7 @@
 import streamlit as st
 import json
 import sympy as sp
-from sympy import Matrix, symbols, latex
+from sympy import Matrix, symbols, latex, sympify
 import time
 import os
 import re
@@ -176,7 +176,7 @@ with left:
 with center:
     st.subheader("現在の行列式")
     if st.session_state.matrix is not None:
-        expr_factor = latex(sympify(st.session_state.factor))
+        expr_factor = latex(simpify(st.session_state.factor))
         expr_matrix = latex(st.session_state.matrix)
         st.latex(rf"{expr_factor} \cdot {expr_matrix}")
 
