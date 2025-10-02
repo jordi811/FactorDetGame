@@ -176,7 +176,9 @@ with left:
 with center:
     st.subheader("現在の行列式")
     if st.session_state.matrix is not None:
-        st.latex(rf"{st.session_state.factor} \cdot {latex(st.session_state.matrix)}")
+        expr_factor = latex(st.session_state.factor)
+        expr_matrix = latex(st.session_state.matrix)
+        st.latex(rf"{expr_factor} \cdot {expr_matrix}")
 
 # ==============================
 # 【ゴール判定】
