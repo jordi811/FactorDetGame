@@ -192,23 +192,30 @@ with center:
         final_seconds = int(final_time % 60)
         st.write(f"クリアタイム：{final_minutes}分 {final_seconds}秒")
 
-        # 風船演出
-        if final_minutes < 3:
-            for _ in range(10):
+        # ------------------------------
+        # 風船演出（初回のみ）
+        # ------------------------------
+        if "cleared" not in st.session_state:
+            st.session_state.cleared = False
+
+        if not st.session_state.cleared:
+            if final_minutes < 3:
+                for _ in range(10):
+                    st.balloons()
+                    time.sleep(0.5)
+            elif final_minutes < 5:
+                for _ in range(5):
+                    st.balloons()
+                    time.sleep(0.5)
+            elif final_minutes < 7:
+                for _ in range(3):
+                    st.balloons()
+                    time.sleep(0.5)
+            elif final_minutes < 10:
                 st.balloons()
-                time.sleep(0.5)
-        elif final_minutes < 5:
-            for _ in range(5):
-                st.balloons()
-                time.sleep(0.5)
-        elif final_minutes < 7:
-            for _ in range(3):
-                st.balloons()
-                time.sleep(0.5)
-        elif final_minutes < 10:
-            st.balloons()
-        else:
-            st.snow()
+            else:
+                st.snow()
+            st.session_state.cleared = True   # ← ここで「演出済み」マーク
 
         # ==============================
         # 【もう1回やるか？ボタン（ゴール後のみ表示）】
@@ -222,8 +229,10 @@ with center:
                 "size": size,
                 "problem_data": data,
                 "last_file": "demo",
-                "start_time": time.time()
+                "start_time": time.time(),
+                "cleared": False  # ← リセット時に解除
             })
             st.rerun()
     else:
         st.info("まだゴールちゃうで。行列式が数字になるまで頑張ってな！")
+
