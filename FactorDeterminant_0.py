@@ -224,6 +224,6 @@ with center:
                 "last_file": "demo",
                 "start_time": time.time()
             })
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.info("まだゴールちゃうで。行列式が数字になるまで頑張ってな！")
